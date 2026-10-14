@@ -13,6 +13,7 @@ async fn root_layout(slot: Slot<'_>) -> Result<impl View> {
             <head>
                 <title>"Shelf"</title>
                 topcoat::dev::script()
+                <link rel="stylesheet" href=(topcoat::tailwind::stylesheet!())>
             </head>
             <body>
                 <header>
