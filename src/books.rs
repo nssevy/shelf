@@ -1,3 +1,4 @@
+#[derive(Clone, serde::Serialize)]
 pub struct Book {
     pub id: u32,
     pub title: String,
