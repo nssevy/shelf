@@ -3,7 +3,11 @@ use crate::books::Book;
 
 use topcoat::{
     Result,
-    router::{Router, RouterBuilderDiscoverExt, page},
+    context::Cx,
+    router::{
+        Router, RouterBuilderDiscoverExt, Slot, error::RouterErrorExt, href, layout, page,
+        path_param,
+    },
     view::{View, class, component, view},
 };
 
@@ -14,9 +18,9 @@ async fn main() {
         .unwrap()
 }
 
-#[page("/")]
-async fn home() -> Result<impl View> {
-    let livres: Vec<Book> = Book::all();
+#[layout("/")]
+async fn root_layout(slot: Slot<'_>) -> Result<impl View> {
+    //let link_url: Vec![""]
     Ok(view! {
         <!DOCTYPE html>
         <html>
@@ -25,33 +29,90 @@ async fn home() -> Result<impl View> {
                 topcoat::dev::script()
             </head>
             <body>
-                for livre in livres {
-                    book_card(title: &livre.title, author: &livre.author, yers: livre.year, finished: livre.finished)
-                }
-                <h2>"Livre spécifique"</h2>
-                match Book::find(1){
-                    Some(livre) => book_card(title: &livre.title, author: &livre.author, yers: livre.year, finished: livre.finished),
-                    None => {}
-                }
+                <header>
+                    <nav>
+                        <a href=(href!(home))>"Home"</a>
+                        <a href=(href!(about))>"about"</a>
+                    </nav>
+                </header>
+                <main>(slot)</main>
+                <footer></footer>
             </body>
         </html>
     })
 }
 
+#[page("/")]
+async fn home() -> Result<impl View> {
+    let livres: Vec<Book> = Book::all();
+    Ok(view! {
+        <h1>
+            "Mes livres ("
+            (livres.len())
+            " books)"
+        </h1>
+        for livre in livres {
+            book_card(
+                id: livre.id,
+                title: &livre.title,
+                author: &livre.author,
+                year: livre.year,
+                finished: livre.finished
+            )
+        }
+    })
+}
+
+#[page("/about")]
+async fn about() -> Result<impl View> {
+    let prenom: String = "Sevy".into();
+    Ok(view! {
+        <h2>
+            "Bonjours je me présente "
+            (prenom)
+        </h2>
+    })
+}
+
+path_param!(book_id: u32, error=not_found);
+#[page("/books/{book_id}")]
+async fn book_detail(cx: &Cx) -> Result<impl View> {
+    let id: &u32 = path_param::<BookId>(cx)?;
+    let book: Book = Book::find(*id).ok_or_not_found()?;
+    Ok(view! {
+        <h1>(book.title)</h1>
+        <p>
+            (book.author)
+            "|"
+            (book.year)
+        </p>
+        if book.finished {
+            <p>"Livre terminé"</p>
+        } else {
+            <p>"Pas encore fini de lire"</p>
+        }
+        <a href=(href!(home))>"Retour"</a>
+    })
+}
+
 #[component]
-async fn book_card(title: &str, author: &str, yers: u32, finished: bool) -> Result<impl View> {
+async fn book_card(
+    id: u32,
+    title: &str,
+    author: &str,
+    year: u32,
+    finished: bool,
+) -> Result<impl View> {
     Ok(view! {
         <article>
-            <h2>(title)</h2>
+            <h2><a href=(href!(book_detail, BookId(id)))>(title)</a></h2>
             <p>
                 "L'auteur est : "
                 (author)
                 ", sorti en "
-                (yers)
+                (year)
             </p>
-            <span
-                class = (class!("badge", "done" if finished ))
-            >
+            <span class=(class!("badge", "done" if finished))>
                 if finished {
                     "Lu"
                 } else {
