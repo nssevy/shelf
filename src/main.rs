@@ -3,6 +3,7 @@ mod books;
 mod components;
 mod layout;
 mod pages;
+mod ui;
 
 use topcoat::{
     asset::{AssetBundle, RouterBuilderAssetExt},

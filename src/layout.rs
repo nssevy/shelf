@@ -1,6 +1,7 @@
 use crate::pages::{about, home};
 use topcoat::{
     Result,
+    font::fontsource::fontsource_font,
     router::{Slot, href, layout},
     view::{View, view},
 };
@@ -14,6 +15,7 @@ async fn root_layout(slot: Slot<'_>) -> Result<impl View> {
                 <title>"Shelf"</title>
                 topcoat::dev::script()
                 <link rel="stylesheet" href=(topcoat::tailwind::stylesheet!())>
+                topcoat::font::link(font: fontsource_font!(GEIST))
             </head>
             <body>
                 <header>
@@ -22,7 +24,7 @@ async fn root_layout(slot: Slot<'_>) -> Result<impl View> {
                         <a href=(href!(about))>"about"</a>
                     </nav>
                 </header>
-                <main>(slot)</main>
+                <main class="max-w-6xl mx-auto px-6 py-10">(slot)</main>
                 <footer></footer>
             </body>
         </html>
